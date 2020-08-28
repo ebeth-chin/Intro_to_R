@@ -1,0 +1,472 @@
+---
+title: "Intro_to_R_no_solutions"
+output:
+  html_document:
+    df_print: paged
+    toc: true
+    toc_float: true
+    number_sections: true
+    keep_md: true
+    
+---
+
+# Introduction to R
+ 
+This session aims to get you:   
+
+* up and running with the R language and R Studio  
+* using good practices for reproducible computations and analyses  
+* reading, understanding, and manipulating dataframes  
+  * variable types  
+  * subsetting data  
+
+This is adapted from the UC Davis [DSI Introduction to R Bootcamp.](https://github.com/dsidavis/RIntro18)
+  
+## A Tour of the RStudio GUI (Graphical User Interface)  
+
+There are 5 main areas in the RStudio interface:  
+
+  * Prompt/command panel aka "Console" (top right... on EC's setup. May be different for your computer!)  
+  * Script area (top left)  
+  * Environment, Workspace & History (bottom left)  
+  * Plots, Packages, Help, Files (bottom right)  
+  * Menus that bring up different dialogs.  
+    
+You can change the layout of these windows by going to the menu at the top > tools > global options > pane layout   
+
+We're going to use the script area to write our R commands into files and then send the commands to the prompt/command panel to execute them.  
+
+By putting the commands into a file, we ensure that we have them after the R session and we can reconstruct what we did. We'll refine the text in the script/file so that it works.  
+
+Open a new file by going to File > New File. There are different types of R/RStudio files.  
+
+  * R Script (.R)  
+  * R markdown and R Notebook (.Rmd)  
+  
+This is an R Notebook file. Some parts of the file are text ('markdown') and others ('chunks') are code that can be executed.  
+
+Why use R Notebooks?  
+
+  + easy to organize notes from code  
+  + can easily run all lines in a code chunk at once ('play' button)  
+    + run a **single** line of code by pressing CMD + ENTER or CTRL + ENTER
+  + can run all previous chunks of code at once (downward play button)  
+  + can format the output (e.g. figures) easily  
+
+
+We're not going to get into the specifics of markdown or configuring notebooks in this session, but here are some [resources](https://bioinformaticsworkbook.org/Appendix/Markdown.html).   
+[R Markdown: The Definitive Guide](https://bookdown.org/yihui/rmarkdown/markdown-syntax.html)  
+[R Markdown Cheatsheet](https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf)  
+
+## Five tips for writing code  
+
+  + annotate your code  
+    + write code for humans, not computers  
+  + use new lines and indents to organize your code  
+    + no one likes a run on sentence  
+  + troubleshoot small sections of code at a time  
+    + baby steps before big steps  
+  + use the ? to get more info for functions    
+    + Dr. Google is also your friend   
+  + there can be multiple answers to the same problem  
+    + don't be afraid to try different things   
+    + it's unlikely you're going to permanently break anything  
+
+
+# Importing Data   
+
+First, we are going to tell R to use this as the working directory. Next, we can read in our data.  
+**note that one of the key differences between a vanilla R script and an R markdown (Rmd) file is that the working directory is exclusive to a specific chunk for the Rmd. For a regular .R file, the working directory is global.**   
+
+We are using the example ASA24-2016 ddata set, which can be downloaded from the [ASA24 researcher website.](https://epi.grants.cancer.gov/asa24/researcher/sample.html). We are specifically using the file Snow_2018-05-30_42236_Items.csv, which you can directly download in the /data/ folder. 
+
+
+We are going to read in the file: Snow_2018-05-30_42236_Items.csv   
+We specify that the top row contains the column names using 'header = T'  
+**when using R markdown or R notebook, you *must* press 'play' to open a file after setting the working directory. You *cannot* run this next chunk line-by-line**
+```{r setup}
+#set the working directory
+#You'll change the directory to wherever your data lives on your computer
+setwd("/Users/elizabeth.chin/Desktop/Intro_to_R/Fall_2019/")
+
+#you can check your working directory with:
+getwd()
+
+#load the data
+items<- read.csv("./data/Snow_2018-05-30_42236_Items.csv", header=T)
+#read-in commands for other types of data: read.delim(), read.table()-- check out ?read.csv() for more
+
+#another way to load the data, without setting the working directory first
+#items<- read.csv("/Users/elizabeth.chin/Desktop/Intro_to_R_labmeeting/ASA242016/Studies_created_after_May312018/2016Recall/Snow_2018-05-30_42236_Items.csv", header=T)
+
+```
+
+Ideally we'd use version control (e.g. git) for the files in this RIntro directory.  
+We can talk about this later if you're interested.  
+
+# Creating and assigning variables 
+
+So assignments to create or overwrite variables in R are of the form:  
+```{r assignments, eval=F}
+variable = value
+variable <- value
+```
+(For completeness, you may also see `->` being used, and also a call to the assign() function.)  
+
+You can create new variables yourself, e.g.,  
+```{r variables}
+x = 4
+name = "Ebeth"
+gotIt = TRUE
+```
+
+Note that these variables appear in the bottom-left panel of the RStudio GUI.
+We can also list the names of the variables we have created with the `ls()` function
+
+```{r ls}
+ls()
+```
+
+We can also remove variables when we no longer need their values using `rm()`,   
+e.g.,   
+```{r rm}
+rm(x, name)
+```
+**Be careful not to remove a variable you do want. After a call to rm(), it is gone unless you happened to save()/saveRDS() the variable earlier.**
+  
+## Types of variables and data  
+Adapted from [here](https://www.statmethods.net/input/datatypes.html)  
+
+There are many types of data structures in R, including:  
+  
+* vectors (numerical, characters, logical)
+* matrices
+   * all columns must have the same mode (numeric, character,etc.) and be the same length
+* arrays
+   * similar to matrices, but can have more than 2 dimensions  
+* data frames
+   * like a matrix, but different columns can have different modes (numeric, character, factor, etc.)
+* lists
+   * ordered collection of objects (components)
+   * allows you to gather a variety of objects under one name
+
+
+R has 6 basic data types:
+
+ * character ("a", "dog")
+ * numeric (real or decimal) (2, 1.1)
+ * integer (2L (L tells R to store this as an integer))
+ * logical (TRUE or FALSE)
+ * complex (1 + 4i) 
+ 
+Sometimes data are called 'fators' -- that's basically just a categorical variable (e.g. Male or Female; small, medium, or large)
+
+# Inspecting your data
+
+We assigned the datafile to a variable we called `items`.
+What is it? You can see some details about it in the "Environment" panel in the bottom left panel of the RStudio GUI. But that only shows you some information. We can query the object for much more information.
+You should get into the habit of doing this for objects you create.   
+  
+The functions we use all the time for this include:  
+
+  * size
+    * `dim()`
+    * `nrow()`
+    * `ncol()`
+    * `length()`
+  + names
+    * `names(`)
+    * `colnames()`
+    * `rownames()`
+  + summary
+    + `str()`
+    + `summary()`
+  + `class()`
+
+Many of these functions are generic and can be applied to different types of data (not just data frames)
+
+What does these functions do?
+Look them up with the help command, e.g.,
+```{r help}
+help("class")
+?names
+```
+
+**DIY:** ***use the functions listed above to get some summary information about 'items'***
+
+```{r diy1, echo=F, eval=F}
+dim(items) #get the dimensions
+class(items) #what type of object/data
+str(items) #types of variables in 'items' 
+```
+***what can you tell me about the data?***  
+***data type:***   
+***dimensions:***   
+***variable types include:***   
+***how many types of Food Sources (FoodSrce) are there?*** 
+
+We can also glance at the data using the `head()` or `tail()` functions:   
+
+```{r headtail}
+head(items) #first ten lines (default)
+tail(items) #last ten lines
+
+head(items, n=3) #first three lines
+```
+
+**DIY:** ***can you show me the last four lines of 'items'?***
+```{r diy2, echo=F, eval=F}
+tail(items, n = 4)
+```
+
+The `View()` function is also an easy way to peep at your data in a new window that you can sort, filter, and search. You can also double-click on the name in the Environment window.   
+```{r}
+View(items)
+```
+
+# Indexing data frames
+
+`items` is a data frame consisting of 51 row sand 130 columns. We can extract specific elements from `items` by specifying the "coordinates". Row numbers come first then columns.  
+
+## Extract columns: 
+
+```{r get-col}
+items[,21] #get the FoodCode column as a vector
+items[21] #get the FoodCode column as a data frame
+items[,-21] #get every column EXCEPT column 21
+items[,c(21:24)] #get columns 21:24. notice the 'c', which acts to 'concatenate' multiple items together
+```
+We can also extract a column using the column name:   
+
+```{r get-col2}
+items['FoodCode'] #data frame
+items[['FoodCode']] #vector
+items[,'FoodCode'] #vector, notice the ,
+items$FoodCode #vector
+#the last three are equivalent
+```
+
+## Extract rows
+
+```{r rows1}
+items[1,] #get the first row
+items[c(1:5),] #get the first five rows
+items[-1,] #get everything EXCEPT the first row
+```
+
+`items` rownames are just 1-n. We can still summon a specific row using the rowname instead of location (it just so happens in this case that the rowname is the same as the row number)
+
+```{r rows2}
+items['1',] #get the first row
+```
+
+## Extracting specific data points  
+
+We can combine the indexing of rows and columns to get specific data points:  
+```{r index-combine}
+items[1,1] #the first row and first column (vector)
+items[1:3, 21] #the first three elements of the 21st column (vector)
+```
+
+**DIY:**  
+***1) extract the column named "Food_Description" and assign to a dataframe called "fd"***    
+```{r echo=F, eval=F}
+fd<- items["Food_Description"]
+```
+
+***2) What is the class of 'fd'? ***   
+```{r echo=F, eval=F}
+class(fd)
+```
+
+***3) Show me the first 5 rows of 'fd'***
+```{r echo=F, eval=F}
+head(fd, n = 5)
+```
+
+**DIY:** ***extract columns 95, 119, and 1 (in that order) from 'items'***
+
+```{r echo=F, eval=F}
+items[,c(95, 119, 1)]
+```
+
+**DIY:** ***For 'items', how would you get rows 6 through 10 and all columns EXCEPT the last one?***
+
+```{r diy4, echo=F, eval=F}
+items[6:10, -130]
+
+```
+
+## Column Summary Statistics
+
+We can also use the `summary()` function on just one column
+
+```{r summary}
+summary(items$TFAT)
+```
+
+**DIY:** ***can you get the summary for columns 121 to 124 from 'items'?***
+
+```{r diy5, echo=F, eval=F}
+summary(items[,121:124])
+```
+
+# Conditiomal Subsetting
+
+We can return just part of the data that meet certain conditions
+
+Conditions can be defined using the following: 
+
+  + `==` means 'equal to'
+  + `!=` means 'not equal to'
+  + `>` means 'greather than'
+  + `>=` means 'greater than or equal to'
+  + `<` means 'less than'
+  + `<=` means 'less than or equal to'
+    
+Joiners   
+
+  + `|` means 'or'
+  + `&` means 'and'
+
+e.g. Return all the foods (rows) in items where the value for "OILS" is 0
+
+```{r subset}
+items$OILS == 0 #returns a logical vector
+items[items$OILS==0,] #returns all rows in the dataframe where the vector is TRUE. Notice the comma-- it returns all the columns
+
+subset(items, OILS==0) #another way
+```
+
+You can also use conditional subsetting on characters (i.e. not numbers)   
+```{r}
+items$FoodSrce != "Other cafeteria" #notice the ""
+```
+
+
+***DIY: Return all rows where the PROT value is greather than or equal to 5. How many rows are there?***
+
+```{r, echo=F, eval=F}
+items[items$PROT >= 5,]
+#another way: 
+subset(items, PROT >= 5)
+```
+
+# Counting factors 
+
+Sometimes we want to know how many of a specific factor we have in our data. We can do this a few ways:   
+
+e.g. how many counts are there for each FOODSRC?
+```{r}
+table(items$FoodSrce)
+```
+
+
+# The 'dplyr' package
+
+[dplyr](https://dplyr.tidyverse.org/) is an R library used for data manipulation. We'll briefly cover the following functions:   
+
+  + select
+  + filter
+
+But these are just a few of many dplyr functions that are helpful for data manipulation and organization!   
+
+First, we need to install and load the dplyr package:   
+```{r dplyr, eval = F}
+#install the package. you'll only need to do this once
+install.packages('dplyr')
+
+
+```
+
+after it's installed, you need to load it. you'll do this EVERYTIME you want to use it in a single file (not every time you want to use a specific function though)
+
+```{r}
+library(dplyr)
+```
+
+## dplyr::select
+The `select` function makes it easy to select columns.   
+Let's use it to select the FoodCode and Food_Description from items, and assign it to a new df called "tiny_items"
+```{r select}
+?select()
+
+tiny_items<- select(items, 
+                    c(FoodCode, Food_Description)) #remember the c!
+#select(items, c("FoodCode", "Food_Description")) #you can also use the "" but you don't need it.
+```
+## dplyr::filter
+
+The `filter` function is similar to 'subset' and  makes it easy to select certain rows from a column given a specific condition.   
+
+E.g. Filter tiny_items to only include FoodCodes greater than 60000000. 
+```{r filter}
+?filter()
+
+filter(tiny_items, 
+       FoodCode > 60000000) #FoodCode is numeric
+```
+Notice that all columns are returned   
+
+Filter can also be used on columns of a non-numeric class   
+E.g. Filter dataframe tiny_items to only include rows where the Food_Description is "Cheerios"   
+```{r filter2}
+
+class(tiny_items$Food_Description)
+filter(tiny_items,
+       Food_Description == "Cheerios") #notice the ""
+```
+
+Here's an example of two rules   
+```{r filter3}
+filter(tiny_items, 
+       Food_Description == "Cheerios" | 
+         Food_Description == "Banana, raw")
+```
+
+**DIY:** 
+***1) select the columns: FoodCode, Food_Description, SUGR, and TFAT from 'items' (in that order) and assign to a new dataframe called "df"***   
+```{r echo=F, eval=F}
+df<-select(items, 
+           c(FoodCode, Food_Description, SUGR, TFAT))
+
+#another way:
+df<-items[,c("FoodCode", "Food_Description", "SUGR", "TFAT")]
+```
+
+***2) filter 'df' to only include rows where the values of SUGR are greater than 4 and the FoodCode is less than or equal to 50000000. Assign to a new dataframe called 'df2'***
+```{r echo=F, eval=F}
+df2<- filter(df, 
+             SUGR >4 & 
+               FoodCode <= 50000000)
+```
+
+***3) what are the dimensions of df2? What is the median of TFAT in df2? What is the median of TFAT in df?***
+
+```{r diy6, echo=F, eval=F}
+dim(df2)
+summary(df2$TFAT)
+summary(df$TFAT)
+```
+
+# Recap
+
+tl;dr
+
+Function Name | What it does
+--------------|--------------
+setwd | sets the working directory (tells R where to look for your files, where to save your files)
+read.csv| reads in CSV files from a given location (e.g. your working directory)
+library | loads a given library. do this before you use a function from the library for the first time in a session. 
+str | returns the structure of your data
+class | returns the class of your data (i.e. tells you what type of data you have)
+names | returns the names of an object. This is the same as 'colnames' for a data frame. 
+dim | returns the dimensions of a matrix, array, or data frame
+nrow and ncol | returns the number of rows or columns
+View | invokes a spreadsheet-like data viewer in a new tab (notice the capital V) 
+summary | produces a summary of the object (e.g. mean, median, max)
+select | from the dplyr package. selects specific columns that can be specified by the column name
+filter | from the dplyr package. returns rows that meet a given rule(s) for a column(s) 
+
+
+
